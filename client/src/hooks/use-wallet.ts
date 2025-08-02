@@ -8,6 +8,7 @@ export interface WalletConnection {
   address: string;
   chainId: number;
   balance: string;
+  id?: string; // Optional ID for the wallet connection
   connected: boolean;
 }
 
@@ -68,7 +69,8 @@ export function useWallet(): UseWalletReturn {
     address,
     chainId,
     balance: balance ? parseFloat(balance.formatted).toFixed(4) : '0.0000',
-    connected: true
+    connected: true,
+    id: address
   } : null;
 
   const handleConnect = () => {

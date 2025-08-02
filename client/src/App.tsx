@@ -5,9 +5,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { Header } from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
-import { Dashboard } from "@/pages/dashboard";
 import { NotFound } from "@/pages/not-found";
 import { WalletProvider } from "./shared/providers/WalletProvider";
+import { WebSocketProvider } from "./shared/providers/WebSocketProvider";
+import DashboardPage from "./pages/dashboard";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -77,26 +78,28 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <WalletProvider> 
-        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-          <Router>
-            <div className="min-h-screen bg-gray-900">
-              <Header />
-              <div className="flex">
-                <Sidebar />
-                <main className="flex-1 p-6">
-                  <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </main>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <WalletProvider>
+          <WebSocketProvider>
+            <Router>
+              <div className="min-h-screen bg-gray-900">
+                <Header />
+                <div className="flex">
+                  <Sidebar />
+                  <main className="flex-1 p-6">
+                    <Routes>
+                      <Route path="/" element={<DashboardPage />} />
+                      <Route path="/dashboard" element={<DashboardPage />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </main>
+                </div>
               </div>
-            </div>
-            <Toaster />
-          </Router>
-        </ThemeProvider>
-      </WalletProvider>
+              <Toaster />
+            </Router>
+          </WebSocketProvider>
+        </WalletProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

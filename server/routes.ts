@@ -11,7 +11,6 @@ import {
   insertSwapTransactionSchema,
   insertCrossChainBridgeSchema,
 } from "@shared/schema";
-import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Demo user creation for development

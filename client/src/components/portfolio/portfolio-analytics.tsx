@@ -3,9 +3,9 @@ import { TrendingUp, TrendingDown, DollarSign, Activity } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useUserPortfolio, useSpotPrices } from '@/hooks/use-oneinch';
-import { useWebSocket } from '@/hooks/use-websocket';
 import { TOKEN_ADDRESSES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { useWebSocketContext } from '@/shared/providers/WebSocketProvider';
 
 interface PortfolioAnalyticsProps {
   className?: string;
@@ -25,6 +25,8 @@ export function PortfolioAnalytics({ className }: PortfolioAnalyticsProps) {
   const [chartData, setChartData] = useState<number[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const userId = 'demo-user';
+  // WebSocket for real-time portfolio updates
+  const { sendMessage, subscribe, isConnected } = useWebSocketContext();
 
   const { data: portfolio, isLoading: portfolioLoading } = useUserPortfolio(userId);
   const { data: prices } = useSpotPrices([
@@ -32,16 +34,6 @@ export function PortfolioAnalytics({ className }: PortfolioAnalyticsProps) {
     TOKEN_ADDRESSES.WBTC,
     TOKEN_ADDRESSES.USDC
   ]);
-
-  // WebSocket for real-time portfolio updates
-  const { isConnected } = useWebSocket({
-    onMessage: (message) => {
-      if (message.type === 'portfolio_update') {
-        console.log('Portfolio update received:', message.data);
-        // In a real implementation, this would update the portfolio data
-      }
-    }
-  });
 
   // Mock portfolio data for demonstration (would be replaced with real data from portfolio API)
   const mockAssets: AssetData[] = [

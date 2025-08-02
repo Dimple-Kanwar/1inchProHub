@@ -7,9 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useWebSocket } from '@/hooks/use-websocket';
 import { cn } from '@/lib/utils';
-
+import { useWebSocketContext } from '@/shared/providers/WebSocketProvider';
 interface PortfolioAnalysisProps {
   className?: string;
 }
@@ -40,7 +39,7 @@ interface RiskMetric {
 export function PortfolioAnalysis({ className }: PortfolioAnalysisProps) {
   const [timeframe, setTimeframe] = useState('30d');
   const [analysisType, setAnalysisType] = useState('allocation');
-  
+  const { sendMessage, subscribe, isConnected } = useWebSocketContext();
   // Mock data - in real app this would come from API
   const [allocations] = useState<AssetAllocation[]>([
     { token: 'ETH', current: 45, target: 40, value: '$4,500', recommendation: 'sell' },
@@ -62,14 +61,6 @@ export function PortfolioAnalysis({ className }: PortfolioAnalysisProps) {
     { name: 'Correlation Risk', value: 25, level: 'low', description: 'Well diversified assets' },
     { name: 'Liquidity Risk', value: 12, level: 'low', description: 'High liquidity across positions' }
   ]);
-
-  const { isConnected } = useWebSocket({
-    onMessage: (message) => {
-      if (message.type === 'portfolio_analysis_update') {
-        console.log('Portfolio analysis update:', message.data);
-      }
-    }
-  });
 
   const getRecommendationColor = (rec: string) => {
     switch (rec) {

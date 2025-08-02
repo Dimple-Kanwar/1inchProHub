@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Shield, AlertTriangle, TrendingUp, Lightbulb, Bell } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -33,16 +33,21 @@ export function RiskAssessment({ className }: RiskAssessmentProps) {
   const [insights, setInsights] = useState<AIInsight[]>([]);
 
   // WebSocket for real-time risk updates
-  const { isConnected } = useWebSocket({
-    onMessage: (message) => {
-      if (message.type === 'risk_update') {
-        console.log('Risk update received:', message.data);
-        // Update risk metrics in real implementation
+  const handleWebSocketMessage = useCallback((message: any) => {
+    if (message.type === 'risk_update') {
+      console.log('Risk update received:', message.data);
+      // Update risk metrics in real implementation
+      if (message.data?.riskScore) {
+        setRiskScore(message.data.riskScore);
       }
     }
+  }, []);
+
+  const { isConnected } = useWebSocket({
+    onMessage: handleWebSocketMessage
   });
 
-  const riskMetrics: RiskMetric[] = [
+  const riskMetrics: RiskMetric[] = useMemo(() => [
     {
       label: 'Portfolio Volatility',
       value: 35,
@@ -71,7 +76,7 @@ export function RiskAssessment({ className }: RiskAssessmentProps) {
       status: 'low',
       color: 'green'
     }
-  ];
+  ], []);
 
   // Initialize AI insights
   useEffect(() => {
@@ -108,11 +113,11 @@ export function RiskAssessment({ className }: RiskAssessmentProps) {
     setInsights(mockInsights);
   }, []);
 
-  const getRiskLevel = (score: number) => {
+  const getRiskLevel = useCallback((score: number) => {
     if (score < 30) return { level: 'Low', color: 'text-green-400', bgColor: 'bg-green-400' };
     if (score < 70) return { level: 'Moderate', color: 'text-yellow-400', bgColor: 'bg-yellow-400' };
     return { level: 'High', color: 'text-red-400', bgColor: 'bg-red-400' };
-  };
+  }, []);
 
   const getMetricColor = (status: string) => {
     switch (status) {
@@ -164,7 +169,7 @@ export function RiskAssessment({ className }: RiskAssessmentProps) {
     return 'Just now';
   };
 
-  const riskLevel = getRiskLevel(riskScore);
+  const riskLevel = useMemo(() => getRiskLevel(riskScore), [getRiskLevel, riskScore]);
 
   return (
     <div className={cn("space-y-6", className)}>

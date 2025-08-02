@@ -109,7 +109,7 @@ export interface MarketData {
 }
 
 export interface WebSocketMessage {
-  type: 'price_update' | 'gas_update' | 'swap_update' | 'strategy_update' | 'portfolio_update' | 'notification' | 'error';
+  type: 'price_update' | 'gas_update' | 'swap_update' | 'strategy_update' | 'portfolio_update' | 'portfolio_analysis_update' | 'risk_update' | 'notification' | 'error';
   data: any;
   timestamp: number;
 }

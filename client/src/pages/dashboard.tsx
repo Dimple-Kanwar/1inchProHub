@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import {
   Wallet,
   Settings,
@@ -10,8 +10,7 @@ import {
   ChevronDown,
   Network,
 } from "lucide-react";
-import { Header } from "@/components/layout/header";
-import { Sidebar } from "@/components/layout/sidebar";
+
 import { FusionPlusInterface } from "@/components/cross-chain/fusion-plus-interface";
 import { SecurityControls } from "@/components/security/security-controls";
 import { StrategyBuilder } from "@/components/strategies/strategy-builder";
@@ -40,16 +39,7 @@ import { useWebSocket } from "@/hooks/use-websocket";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useWallet } from "@/hooks/use-wallet";
 import { cn } from "@/lib/utils";
-
-const SUPPORTED_NETWORKS = {
-  1: { name: "Ethereum", symbol: "ETH", color: "bg-blue-500" },
-  137: { name: "Polygon", symbol: "MATIC", color: "bg-purple-500" },
-  42161: { name: "Arbitrum", symbol: "ETH", color: "bg-blue-400" },
-  56: { name: "BSC", symbol: "BNB", color: "bg-yellow-500" },
-  43114: { name: "Avalanche", symbol: "AVAX", color: "bg-red-500" },
-  10: { name: "Optimism", symbol: "ETH", color: "bg-red-400" },
-  250: { name: "Fantom", symbol: "FTM", color: "bg-blue-600" },
-};
+import { SUPPORTED_NETWORKS } from "@/config/blockchains";
 
 export function Dashboard() {
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -59,7 +49,7 @@ export function Dashboard() {
   });
 
   const { wallet, isOnline } = useWallet();
-  const { isConnected: wsConnected, lastMessage } = useWebSocket();
+  const { isConnected: wsConnected } = useWebSocket();
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -88,27 +78,18 @@ export function Dashboard() {
     };
   }, []);
 
-  const navigateToSection = (section: string) => {
+  const navigateToSection = useCallback((section: string) => {
     setActiveSection(section);
-  };
+  }, []);
 
-  const currentNetwork =
-    SUPPORTED_NETWORKS[wallet?.chainId as keyof typeof SUPPORTED_NETWORKS];
+  const currentNetwork = useMemo(
+    () => SUPPORTED_NETWORKS[wallet?.chainId as keyof typeof SUPPORTED_NETWORKS],
+    [wallet?.chainId]
+  );
 
   return (
-    <div className="min-h-screen bg-gray-900">
-      <Header />
-
-      <div className="flex">
-        {!isMobile && (
-          <Sidebar
-            className="hidden lg:block"
-            onNavigate={navigateToSection}
-            activeSection={activeSection}
-          />
-        )}
-
-        <main className="flex-1 overflow-hidden">
+    <div className="space-y-8">
+      <main className="flex-1 overflow-hidden">
           <div className="p-6 max-w-7xl mx-auto space-y-8">
             {/* Enhanced Header with Connection Status */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -239,7 +220,6 @@ export function Dashboard() {
             )}
           </div>
         </main>
-      </div>
     </div>
   );
 }

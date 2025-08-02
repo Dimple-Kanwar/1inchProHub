@@ -1,16 +1,13 @@
+import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { WagmiProvider } from 'wagmi';
-import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { Header } from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Dashboard } from "@/pages/dashboard";
 import { NotFound } from "@/pages/not-found";
-import { wagmiConfig } from "@/lib/wagmi-config";
-import { useState, useEffect } from "react";
-import '@rainbow-me/rainbowkit/styles.css';
+import { WalletProvider } from "./shared/providers/WalletProvider";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,10 +15,6 @@ const queryClient = new QueryClient({
       retry: 3,
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       staleTime: 5 * 60 * 1000, // 5 minutes
-      cacheTime: 10 * 60 * 1000, // 10 minutes
-      onError: (error) => {
-        console.error("Query error:", error);
-      },
     },
     mutations: {
       retry: 2,
@@ -83,30 +76,28 @@ function App() {
   }
 
   return (
-    <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme="dark">
-          <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-            <Router>
-              <div className="min-h-screen bg-gray-900">
-                <Header />
-                <div className="flex">
-                  <Sidebar />
-                  <main className="flex-1 p-6">
-                    <Routes>
-                      <Route path="/" element={<Dashboard />} />
-                      <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </main>
-                </div>
+    <QueryClientProvider client={queryClient}>
+      <WalletProvider> 
+        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+          <Router>
+            <div className="min-h-screen bg-gray-900">
+              <Header />
+              <div className="flex">
+                <Sidebar />
+                <main className="flex-1 p-6">
+                  <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </main>
               </div>
-              <Toaster />
-            </Router>
-          </ThemeProvider>
-        </RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+            </div>
+            <Toaster />
+          </Router>
+        </ThemeProvider>
+      </WalletProvider>
+    </QueryClientProvider>
   );
 }
 

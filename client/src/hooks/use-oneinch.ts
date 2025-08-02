@@ -5,8 +5,13 @@ import type { TokenInfo, SwapQuote, SwapParams, Strategy, Portfolio } from '@/ty
 export function useTokens(chainId: number = 1) {
   return useQuery({
     queryKey: ['/api/tokens', chainId],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/tokens/${chainId}`);
+      return response.json();
+    },
     enabled: !!chainId,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    // cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 
@@ -19,9 +24,15 @@ export function useSwapQuote(
 ) {
   return useQuery({
     queryKey: ['/api/quote', chainId, { src, dst, amount }],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/quote/${chainId}?src=${src}&dst=${dst}&amount=${amount}`);
+      return response.json();
+    },
     enabled: enabled && !!src && !!dst && !!amount && parseFloat(amount) > 0,
     staleTime: 10 * 1000, // 10 seconds
+    // cacheTime: 30 * 1000, // 30 seconds
     refetchInterval: 15 * 1000, // 15 seconds
+    retry: 2,
   });
 }
 
@@ -72,8 +83,19 @@ export function useCreateFusionOrder() {
 export function useUserPortfolio(userId: string) {
   return useQuery({
     queryKey: ['/api/portfolio', userId],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/portfolio/${userId}`);
+      return response.json();
+    },
     enabled: !!userId,
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 30 * 1000, // 30 seconds,
+    retry: (failureCount, error: any) => {
+      // Don't retry on 404 or 500 errors for demo user
+      if (error?.message?.includes('404') || error?.message?.includes('500')) {
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
 }
 
@@ -152,6 +174,10 @@ export function useGasPrices(chainId: number = 1) {
 export function useSpotPrices(addresses: string[], chainId: number = 1) {
   return useQuery({
     queryKey: ['/api/spot-prices', chainId, { addresses: addresses.join(',') }],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/spot-prices/${chainId}`, { addresses });
+      return response.json();
+    },
     enabled: addresses.length > 0,
     staleTime: 30 * 1000,
     refetchInterval: 30 * 1000,
